@@ -76,6 +76,10 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 
 <div id="questoes">
 
+  <div class="intro-box">
+    <div class="intro-tag">Orientações</div>
+    Responda uma alternativa por questão. Você receberá feedback imediato após cada resposta. Ao responder todas as 10 questões, clique em "Finalizar" para enviar seus resultados ao professor.
+  </div>
 
   <div class="score-bar">
     <span class="score-label">Acertos</span>
@@ -85,6 +89,7 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
   <!-- Q1 -->
   <div class="qcard">
     <div class="qnum">Questão 1 de 10</div>
+    <span class="diff media">Média</span>
     <div class="qtext">Por que a tensão é elevada para centenas de quilovolts antes de ser transmitida por longas distâncias, em vez de transmitir na mesma tensão gerada pela usina?</div>
     <div class="opts" id="opts0">
       <div class="opt" onclick="responder(0,'A')"><span class="opt-l">A</span><span class="opt-t">Para aumentar a frequência da corrente e reduzir o efeito pelicular nos cabos de transmissão.</span></div>
@@ -248,7 +253,7 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 </div><!-- /page -->
 
 <script>
-const APPS_SCRIPT_URL = https://script.google.com/macros/s/AKfycbwjXuc3EooCsg1HdvcsSOOQXfDYAMPrmRPlzuQqE4or3crY5rRp0gh4iaUo9XkwR--FeQ/exec;
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwjXuc3EooCsg1HdvcsSOOQXfDYAMPrmRPlzuQqE4or3crY5rRp0gh4iaUo9XkwR--FeQ/exec';
 const GABARITO = [1,2,1,3,1,4,3,2,1,2];
 const TOTAL = 10;
 const FOK = [
