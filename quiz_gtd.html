@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Quiz — Sistema Brasileiro de GTD</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap');
+  :root {
+    --bg:#ffffff;--surface:#f7f8fa;--surface2:#eef0f4;
+    --border:rgba(0,0,0,0.08);--border2:rgba(0,0,0,0.14);
+    --accent:#1a56db;
+    --green:#057a55;--green-bg:#f0fdf4;--green-border:#86efac;
+    --red:#c81e1e;--red-bg:#fff5f5;--red-border:#fca5a5;
+    --text:#111827;--muted:#6b7280;
+    --mono:'IBM Plex Mono',monospace;--sans:'IBM Plex Sans',sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:100vh;padding:2rem 1rem}
+  .page{max-width:780px;margin:0 auto}
+
+  .header{margin-bottom:2rem;border-bottom:1px solid var(--border);padding-bottom:1.25rem}
+  .header-tag{font-family:var(--mono);font-size:11px;letter-spacing:.12em;color:var(--accent);text-transform:uppercase;margin-bottom:6px}
+  .header h1{font-size:24px;font-weight:600;letter-spacing:-.4px;margin-bottom:4px}
+  .header p{font-size:14px;color:var(--muted)}
+
+  .name-block{background:var(--surface);border:1px solid var(--border2);border-radius:10px;padding:1rem 1.25rem;margin-bottom:1.5rem;display:flex;gap:10px;align-items:center}
+  .name-block label{font-size:13px;color:var(--muted);white-space:nowrap}
+  .name-block input{flex:1;background:#fff;border:1px solid var(--border2);border-radius:7px;padding:8px 12px;font-family:var(--sans);font-size:14px;color:var(--text);outline:none;transition:border-color .2s}
+  .name-block input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(26,86,219,.08)}
+  .name-block input:disabled{opacity:.5;background:var(--surface2)}
+  .btn-confirm{background:var(--accent);color:#fff;border:none;border-radius:7px;padding:8px 18px;font-family:var(--sans);font-size:13px;font-weight:500;cursor:pointer;white-space:nowrap}
+  .btn-confirm:hover{opacity:.88}
+  .btn-confirm:disabled{opacity:.4;cursor:default}
+
+  .section-intro{background:#f0f4ff;border:1px solid #c7d7fd;border-left:4px solid var(--accent);border-radius:10px;padding:1rem 1.25rem;margin-bottom:1.5rem}
+  .section-intro-tag{font-size:11px;font-family:var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--accent);margin-bottom:6px}
+  .section-intro p{font-size:13px;color:var(--muted);line-height:1.6}
+
+  .score-bar{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:1rem 1.25rem;margin-bottom:1.25rem;display:flex;align-items:center;justify-content:space-between}
+  .score-label{font-size:13px;color:var(--muted)}
+  .score-val{font-family:var(--mono);font-size:22px;font-weight:600;color:var(--accent)}
+
+  .diff-badge{display:inline-block;font-family:var(--mono);font-size:10px;letter-spacing:.06em;text-transform:uppercase;padding:2px 8px;border-radius:4px;margin-bottom:8px;font-weight:600}
+  .diff-media{background:#FEF3C7;color:#92400E}
+  .diff-dificil{background:#FEE2E2;color:#991B1B}
+
+  .q-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.5rem;margin-bottom:1.25rem}
+  .q-num{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+  .q-text{font-size:15px;font-weight:500;color:var(--text);line-height:1.6;margin-bottom:1.25rem}
+
+  .options{display:flex;flex-direction:column;gap:8px}
+  .opt{display:flex;align-items:flex-start;gap:12px;padding:10px 14px;border:1.5px solid var(--border2);border-radius:8px;cursor:pointer;transition:all .15s;background:#fff}
+  .opt:hover{border-color:var(--accent);background:#eff6ff}
+  .opt.correct{border-color:var(--green);background:var(--green-bg);pointer-events:none}
+  .opt.wrong{border-color:var(--red);background:var(--red-bg);pointer-events:none}
+  .opt.disabled{pointer-events:none;opacity:.6}
+  .opt-letter{font-family:var(--mono);font-size:12px;font-weight:600;color:var(--muted);min-width:18px;margin-top:2px;flex-shrink:0}
+  .opt.correct .opt-letter{color:var(--green)}
+  .opt.wrong .opt-letter{color:var(--red)}
+  .opt-text{font-size:14px;line-height:1.5;color:var(--text)}
+
+  .feedback{margin-top:10px;font-size:13px;padding:10px 14px;border-radius:7px;display:none;line-height:1.6}
+  .feedback.show{display:block}
+  .feedback.ok{background:var(--green-bg);border:1px solid var(--green-border);color:var(--green)}
+  .feedback.err{background:var(--red-bg);border:1px solid var(--red-border);color:var(--red)}
+
+  .btn-primary{width:100%;padding:13px;background:var(--accent);border:none;border-radius:10px;font-family:var(--sans);font-size:15px;font-weight:600;color:#fff;cursor:pointer;margin-top:1rem;transition:opacity .2s}
+  .btn-primary:hover{opacity:.88}
+  .btn-primary:disabled{opacity:.3;cursor:default}
+
+  .result-box{background:var(--green-bg);border:1px solid var(--green-border);border-radius:12px;padding:1.5rem;margin-bottom:1rem;text-align:center}
+  .result-box h2{font-size:20px;font-weight:600;color:var(--green);margin-bottom:6px}
+  .result-score{font-family:var(--mono);font-size:40px;font-weight:700;color:var(--green);margin:1rem 0 .25rem}
+  .result-pct{font-size:15px;color:var(--muted);margin-bottom:.5rem}
+
+  .perf-msg{border-radius:10px;padding:12px 16px;font-size:14px;font-weight:500;margin-bottom:1rem;text-align:center}
+  .perf-great{background:var(--green-bg);border:1px solid var(--green-border);color:var(--green)}
+  .perf-good{background:#FEF3C7;border:1px solid #FCD34D;color:#92400E}
+  .perf-keep{background:var(--red-bg);border:1px solid var(--red-border);color:var(--red)}
+
+  .verdict{border-radius:10px;padding:10px 14px;font-size:13px;font-weight:500;margin-top:8px;display:flex;align-items:center;gap:8px}
+  .verdict.sent{background:#eff6ff;border:1px solid #bfdbfe;color:var(--accent)}
+
+  .locked{opacity:.3;pointer-events:none;user-select:none}
+  .hidden{display:none}
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="header">
+    <div class="header-tag">Eletrotécnica e Máquinas Elétricas — IFSP Piracicaba</div>
+    <h1>Quiz — Sistema Brasileiro de GTD</h1>
+    <p>10 questões conceituais sobre geração, transmissão e distribuição de energia elétrica.</p>
+  </div>
+
+  <div class="name-block">
+    <label>Nome:</label>
+    <input type="text" id="nameInput" placeholder="Digite seu nome completo..." autocomplete="off"/>
+    <button class="btn-confirm" id="nameBtn" onclick="saveName()">Confirmar</button>
+  </div>
+
+  <div id="main" class="locked">
+
+    <div class="section-intro">
+      <div class="section-intro-tag">Orientações</div>
+      <p>Responda uma alternativa por questão. Você receberá feedback imediato após cada resposta. Ao responder todas as 10 questões, clique em "Finalizar" para enviar seus resultados ao professor. Questões marcadas com <strong style="color:#991B1B">DIFÍCIL</strong> exigem análise conceitual mais aprofundada.</p>
+    </div>
+
+    <div class="score-bar">
+      <span class="score-label">Acertos</span>
+      <span class="score-val" id="scoreDisplay">0 / 10</span>
+    </div>
+
+    <!-- Q1 -->
+    <div class="q-card">
+      <div class="q-num">Questão 1 de 10</div>
+      <span class="diff-badge diff-media">Média</span>
+      <div class="q-text">Por que a tensão é elevada para centenas de quilovolts antes de ser transmitida por longas distâncias, em vez de transmitir na mesma tensão gerada pela usina?</div>
+      <div class="options" id="opts0">
+        <div class="opt" onclick="answer(0,'A')"><span class="opt-letter">A</span><span class="opt-text">Para aumentar a frequência da corrente e reduzir o efeito pelicular nos cabos de transmissão.</span></div>
+        <div class="opt" onclick="answer(0,'B')"><span class="opt-letter">B</span><span class="opt-text">Para reduzir a corrente elétrica na linha, diminuindo as perdas por efeito Joule nos cabos de transmissão.</span></div>
+        <div class="opt" onclick="answer(0,'C')"><span class="opt-letter">C</span><span class="opt-text">Para aumentar a potência transmitida, já que tensão e potência são diretamente proporcionais e independem da corrente.</span></div>
+        <div class="opt" onclick="answer(0,'D')"><span class="opt-letter">D</span><span class="opt-text">Para facilitar a medição de energia pela concessionária em pontos distantes da usina geradora.</span></div>
+        <div class="opt" onclick="answer(0,'E')"><span class="opt-letter">E</span><span class="opt-text">Para evitar o efeito corona, que só ocorre em tensões abaixo de 100 kV nas linhas aéreas.</span></div>
+      </div>
+      <div class="feedback" id="fb0"></div>
+    </div>
+
+    <!-- Q2 -->
+    <div class="q-card">
+      <div class="q-num">Questão 2 de 10</div>
+      <span class="diff-badge diff-media">Média</span>
+      <div class="q-text">Qual é a função de uma subestação elevadora, localizada na saída de uma usina geradora?</div>
+      <div class="options" id="opts1">
+        <div class="opt" onclick="answer(1,'A')"><span class="opt-letter">A</span><span class="opt-text">Reduzir a tensão gerada para o nível de distribuição, tornando-a segura para os consumidores finais.</span></div>
+        <div class="opt" onclick="answer(1,'B')"><span class="opt-letter">B</span><span class="opt-text">Medir e faturar a energia produzida pela usina antes de injetá-la na rede de transmissão.</span></div>
+        <div class="opt" onclick="answer(1,'C')"><span class="opt-letter">C</span><span class="opt-text">Elevar a tensão gerada para o nível de transmissão, permitindo o transporte eficiente em longas distâncias.</span></div>
+        <div class="opt" onclick="answer(1,'D')"><span class="opt-letter">D</span><span class="opt-text">Converter a corrente alternada gerada pela usina em corrente contínua para o sistema de transmissão.</span></div>
+        <div class="opt" onclick="answer(1,'E')"><span class="opt-letter">E</span><span class="opt-text">Compensar o fator de potência da linha de transmissão por meio de bancos de capacitores instalados na saída da usina.</span></div>
+      </div>
+      <div class="feedback" id="fb1"></div>
+    </div>
+
+    <!-- Q3 -->
+    <div class="q-card">
+      <div class="q-num">Questão 3 de 10</div>
+      <span class="diff-badge diff-media">Média</span>
+      <div class="q-text">No sistema brasileiro de GTD, qual é a sequência correta pela qual a energia percorre desde sua geração até chegar a uma residência?</div>
+      <div class="options" id="opts2">
+        <div class="opt" onclick="answer(2,'A')"><span class="opt-letter">A</span><span class="opt-text">Geração → Distribuição → Transmissão → Consumidor.</span></div>
+        <div class="opt" onclick="answer(2,'B')"><span class="opt-letter">B</span><span class="opt-text">Geração → Subestação elevadora → Transmissão → Subestação abaixadora → Distribuição → Consumidor.</span></div>
+        <div class="opt" onclick="answer(2,'C')"><span class="opt-letter">C</span><span class="opt-text">Geração → Subestação abaixadora → Transmissão → Subestação elevadora → Consumidor.</span></div>
+        <div class="opt" onclick="answer(2,'D')"><span class="opt-letter">D</span><span class="opt-text">Geração → Transmissão → Subestação elevadora → Distribuição → Consumidor.</span></div>
+        <div class="opt" onclick="answer(2,'E')"><span class="opt-letter">E</span><span class="opt-text">Geração → Distribuição → Subestação abaixadora → Transmissão → Consumidor.</span></div>
+      </div>
+      <div class="feedback" id="fb2"></div>
+    </div>
+
+    <!-- Q4 -->
+    <div class="q-card">
+      <div class="q-num">Questão 4 de 10</div>
+      <span class="diff-badge diff-media">Média</span>
+      <div class="q-text">De acordo com a matriz energética brasileira (ONS 2026), qual fonte de geração possui a maior participação e o que justifica sua posição dominante no Brasil?</div>
+      <div class="options" id="opts3">
+        <div class="opt" onclick="answer(3,'A')"><span class="opt-letter">A</span><span class="opt-text">Eólica, pois o Brasil possui os maiores parques eólicos do hemisfério sul, com ventos constantes ao longo do ano.</span></div>
+        <div class="opt" onclick="answer(3,'B')"><span class="opt-letter">B</span><span class="opt-text">Solar, pois o Brasil tem a maior irradiação solar média do mundo, tornando a geração fotovoltaica a mais competitiva.</span></div>
+        <div class="opt" onclick="answer(3,'C')"><span class="opt-letter">C</span><span class="opt-text">MMGD (microgeração distribuída), pois a geração residencial solar cresceu exponencialmente após a regulamentação da ANEEL.</span></div>
+        <div class="opt" onclick="answer(3,'D')"><span class="opt-letter">D</span><span class="opt-text">Hidrelétrica, pois o Brasil possui um dos maiores potenciais hídricos do mundo, com grandes rios e desníveis topográficos favoráveis à geração em larga escala com baixo custo operacional.</span></div>
+        <div class="opt" onclick="answer(3,'E')"><span class="opt-letter">E</span><span class="opt-text">Térmica, pois o parque termelétrico brasileiro é o mais confiável em períodos de seca prolongada.</span></div>
+      </div>
+      <div class="feedback" id="fb3"></div>
+    </div>
+
+    <!-- Q5 -->
+    <div class="q-card">
+      <div class="q-num">Questão 5 de 10</div>
+      <span class="diff-badge diff-dificil">Difícil</span>
+      <div class="q-text">A tensão de saída de um gerador eólico é tipicamente muito baixa (em torno de 690 V). Para conectar ao sistema de transmissão de alta tensão, são necessárias duas etapas de elevação. Qual é o principal motivo técnico que impede fazer essa elevação em um único transformador?</div>
+      <div class="options" id="opts4">
+        <div class="opt" onclick="answer(4,'A')"><span class="opt-letter">A</span><span class="opt-text">A norma ABNT NBR 5410 proíbe transformadores com relação de transformação superior a 100 em instalações industriais.</span></div>
+        <div class="opt" onclick="answer(4,'B')"><span class="opt-letter">B</span><span class="opt-text">A elevada relação de transformação necessária geraria sérios problemas de isolação elétrica entre os enrolamentos primário e secundário, tornando o equipamento inviável construtivamente.</span></div>
+        <div class="opt" onclick="answer(4,'C')"><span class="opt-letter">C</span><span class="opt-text">Um único transformador não consegue operar com corrente alternada trifásica nessa faixa de potência típica de parques eólicos.</span></div>
+        <div class="opt" onclick="answer(4,'D')"><span class="opt-letter">D</span><span class="opt-text">O gerador eólico produz corrente contínua, que só pode ser elevada em dois estágios de conversão independentes.</span></div>
+        <div class="opt" onclick="answer(4,'E')"><span class="opt-letter">E</span><span class="opt-text">O custo do transformador único seria menor, mas a norma exige dois estágios por questões de redundância operacional.</span></div>
+      </div>
+      <div class="feedback" id="fb4"></div>
+    </div>
+
+    <!-- Q6 -->
+    <div class="q-card">
+      <div class="q-num">Questão 6 de 10</div>
+      <span class="diff-badge diff-dificil">Difícil</span>
+      <div class="q-text">Em um sistema elétrico industrial, o consumidor recebe energia em média tensão (13,8 kV) e instala uma mini subestação com célula de entrada, transformador de força e quadro geral de baixa tensão. Qual é a função técnica do disjuntor instalado na célula de entrada de média tensão?</div>
+      <div class="options" id="opts5">
+        <div class="opt" onclick="answer(5,'A')"><span class="opt-letter">A</span><span class="opt-text">Regular a tensão de entrada para que o transformador sempre receba exatamente 13,8 kV, independentemente das variações da rede.</span></div>
+        <div class="opt" onclick="answer(5,'B')"><span class="opt-letter">B</span><span class="opt-text">Medir a energia consumida pela instalação para fins de faturamento pela concessionária de energia.</span></div>
+        <div class="opt" onclick="answer(5,'C')"><span class="opt-letter">C</span><span class="opt-text">Converter a corrente alternada em contínua para alimentar os sistemas de controle e supervisão da subestação.</span></div>
+        <div class="opt" onclick="answer(5,'D')"><span class="opt-letter">D</span><span class="opt-text">Elevar o fator de potência da instalação ao valor exigido pela concessionária, evitando penalidades contratuais.</span></div>
+        <div class="opt" onclick="answer(5,'E')"><span class="opt-letter">E</span><span class="opt-text">Proteger os equipamentos contra sobrecorrentes e curtos-circuitos, além de permitir manobras seguras de energização e desenergização sem depender da concessionária.</span></div>
+      </div>
+      <div class="feedback" id="fb5"></div>
+    </div>
+
+    <!-- Q7 -->
+    <div class="q-card">
+      <div class="q-num">Questão 7 de 10</div>
+      <span class="diff-badge diff-dificil">Difícil</span>
+      <div class="q-text">A geração fotovoltaica produz energia em corrente contínua (CC). Para injetar essa energia na rede elétrica em corrente alternada (CA), qual dispositivo é indispensável e qual é sua principal função além da simples conversão CC → CA?</div>
+      <div class="options" id="opts6">
+        <div class="opt" onclick="answer(6,'A')"><span class="opt-letter">A</span><span class="opt-text">Transformador elevador; eleva a tensão CC para o nível da rede e a converte automaticamente para CA pelo princípio de indução eletromagnética.</span></div>
+        <div class="opt" onclick="answer(6,'B')"><span class="opt-letter">B</span><span class="opt-text">Banco de baterias; armazena a energia CC e a libera em CA por meio de reação eletroquímica reversível.</span></div>
+        <div class="opt" onclick="answer(6,'C')"><span class="opt-letter">C</span><span class="opt-text">Retificador controlado; regula a tensão CC dos painéis antes de conectá-la diretamente à rede de distribuição.</span></div>
+        <div class="opt" onclick="answer(6,'D')"><span class="opt-letter">D</span><span class="opt-text">Inversor grid-tie; converte CC em CA e sincroniza frequência, fase e amplitude com a rede, evitando distúrbios na tensão e distorções harmônicas.</span></div>
+        <div class="opt" onclick="answer(6,'E')"><span class="opt-letter">E</span><span class="opt-text">Regulador de tensão; estabiliza a saída CC dos painéis no valor de pico correspondente ao valor eficaz da rede CA.</span></div>
+      </div>
+      <div class="feedback" id="fb6"></div>
+    </div>
+
+    <!-- Q8 -->
+    <div class="q-card">
+      <div class="q-num">Questão 8 de 10</div>
+      <span class="diff-badge diff-dificil">Difícil</span>
+      <div class="q-text">O sistema de transmissão brasileiro opera com linhas de até 765 kV. Do ponto de vista conceitual, qual é o principal benefício de operar nessa tensão tão elevada em comparação com linhas de menor tensão transmitindo a mesma potência?</div>
+      <div class="options" id="opts7">
+        <div class="opt" onclick="answer(7,'A')"><span class="opt-letter">A</span><span class="opt-text">A corrente elétrica é maior, aumentando a capacidade de transmissão de potência reativa ao longo da linha.</span></div>
+        <div class="opt" onclick="answer(7,'B')"><span class="opt-letter">B</span><span class="opt-text">A resistência dos cabos diminui com o aumento de tensão, reduzindo diretamente as perdas por efeito Joule.</span></div>
+        <div class="opt" onclick="answer(7,'C')"><span class="opt-letter">C</span><span class="opt-text">A corrente elétrica na linha é muito menor, reduzindo significativamente as perdas por efeito Joule nos cabos.</span></div>
+        <div class="opt" onclick="answer(7,'D')"><span class="opt-letter">D</span><span class="opt-text">A frequência da corrente aumenta proporcionalmente à tensão, reduzindo a impedância indutiva total da linha.</span></div>
+        <div class="opt" onclick="answer(7,'E')"><span class="opt-letter">E</span><span class="opt-text">O número de fases do sistema aumenta, permitindo transmitir mais potência com a mesma bitola de cabo.</span></div>
+      </div>
+      <div class="feedback" id="fb7"></div>
+    </div>
+
+    <!-- Q9 -->
+    <div class="q-card">
+      <div class="q-num">Questão 9 de 10</div>
+      <span class="diff-badge diff-media">Média</span>
+      <div class="q-text">Qual é a diferença conceitual entre a rede de média tensão e a rede de baixa tensão na distribuição de energia elétrica?</div>
+      <div class="options" id="opts8">
+        <div class="opt" onclick="answer(8,'A')"><span class="opt-letter">A</span><span class="opt-text">A rede de média tensão alimenta exclusivamente consumidores industriais; a de baixa tensão atende exclusivamente consumidores residenciais, sem exceção.</span></div>
+        <div class="opt" onclick="answer(8,'B')"><span class="opt-letter">B</span><span class="opt-text">A média tensão (13,8 kV ou 34,5 kV) é usada na distribuição primária para levar energia a grandes distâncias dentro da cidade; a baixa tensão (127/220 V ou 220/380 V) é a tensão final entregue ao consumidor após transformação no poste.</span></div>
+        <div class="opt" onclick="answer(8,'C')"><span class="opt-letter">C</span><span class="opt-text">A média tensão é gerada diretamente nas usinas hidrelétricas; a baixa tensão é produzida exclusivamente nas usinas eólicas e fotovoltaicas.</span></div>
+        <div class="opt" onclick="answer(8,'D')"><span class="opt-letter">D</span><span class="opt-text">A distinção é apenas contratual: ambas operam na mesma faixa de tensão física, mas com contratos de fornecimento e tarifas diferentes.</span></div>
+        <div class="opt" onclick="answer(8,'E')"><span class="opt-letter">E</span><span class="opt-text">A rede de média tensão é sempre subterrânea por questões de segurança; a de baixa tensão é sempre aérea em postes de distribuição.</span></div>
+      </div>
+      <div class="feedback" id="fb8"></div>
+    </div>
+
+    <!-- Q10 -->
+    <div class="q-card">
+      <div class="q-num">Questão 10 de 10</div>
+      <span class="diff-badge diff-dificil">Difícil</span>
+      <div class="q-text">Um transformador de distribuição instalado no poste recebe energia em média tensão e entrega ao consumidor em baixa tensão. Qual princípio físico fundamental permite essa transformação de tensão e o que determina a relação entre as tensões de entrada e saída?</div>
+      <div class="options" id="opts9">
+        <div class="opt" onclick="answer(9,'A')"><span class="opt-letter">A</span><span class="opt-text">O efeito termoelétrico: a diferença de temperatura entre os enrolamentos primário e secundário gera uma diferença de potencial proporcional ao número de espiras.</span></div>
+        <div class="opt" onclick="answer(9,'B')"><span class="opt-letter">B</span><span class="opt-text">O efeito fotoelétrico: fótons emitidos pelo campo elétrico do primário excitam elétrons no secundário, gerando tensão proporcional à frequência da corrente aplicada.</span></div>
+        <div class="opt" onclick="answer(9,'C')"><span class="opt-letter">C</span><span class="opt-text">A indução eletromagnética (Lei de Faraday): a variação do fluxo magnético no núcleo induz uma FEM em cada enrolamento proporcional ao seu número de espiras — a relação entre as tensões é igual à relação entre os números de espiras.</span></div>
+        <div class="opt" onclick="answer(9,'D')"><span class="opt-letter">D</span><span class="opt-text">A condução eletrostática: o campo elétrico do enrolamento primário atravessa o núcleo isolante e induz a tensão no secundário por capacitância parasita entre os enrolamentos.</span></div>
+        <div class="opt" onclick="answer(9,'E')"><span class="opt-letter">E</span><span class="opt-text">A ressonância magnética: quando a frequência de operação coincide com a frequência natural do núcleo, ocorre transferência máxima de energia entre os enrolamentos.</span></div>
+      </div>
+      <div class="feedback" id="fb9"></div>
+    </div>
+
+    <button class="btn-primary" id="btnFinalizar" onclick="finalizar()" disabled>Finalizar e enviar resultados →</button>
+
+    <!-- Resultado -->
+    <div id="resultado" class="hidden" style="margin-top:1.5rem">
+      <div class="result-box">
+        <h2>Quiz concluído!</h2>
+        <div class="result-score" id="resultScore">—</div>
+        <div class="result-pct" id="resultPct">—</div>
+        <p>Resultado registrado na planilha do professor.</p>
+      </div>
+      <div id="perfMsg" class="perf-msg"></div>
+      <div id="sentMsg" style="display:none" class="verdict sent">✓ Resultado enviado para a planilha do professor.</div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// =============================================
+const APPS_SCRIPT_URL = https://script.google.com/macros/s/AKfycbwjXuc3EooCsg1HdvcsSOOQXfDYAMPrmRPlzuQqE4or3crY5rRp0gh4iaUo9XkwR--FeQ/exec;
+// =============================================
+
+const GABARITO = [1, 2, 1, 3, 1, 4, 3, 2, 1, 2]; // índice (0=A)
+const TOTAL_Q  = 10;
+
+const FEEDBACK_OK = [
+  "Correto! Elevar a tensão reduz proporcionalmente a corrente na linha. Como as perdas dependem do quadrado da corrente (efeito Joule), sua redução é muito significativa — esse é o principal argumento técnico e econômico para a transmissão em alta tensão.",
+  "Correto! A subestação elevadora contém um transformador que aumenta a tensão da usina (ex.: 13,8 kV) para o nível de transmissão (ex.: 230 kV, 500 kV ou 765 kV), reduzindo a corrente e viabilizando o transporte eficiente em longas distâncias.",
+  "Correto! A sequência correta é: Geração → Subestação elevadora → Transmissão em alta tensão → Subestação abaixadora → Distribuição em média/baixa tensão → Consumidor. Cada etapa tem função específica no sistema.",
+  "Correto! A hidrelétrica lidera com 41,1% (ONS 2026). O Brasil possui um dos maiores potenciais hídricos do planeta, com rios caudalosos como o Amazônas, Paraná e São Francisco, além de desníveis topográficos que favorecem a geração em larga escala.",
+  "Correto! Elevar de 690 V para centenas de quilovolts em um único transformador exigiria uma relação de transformação altíssima. Isso cria distâncias de isolação dielétricas entre os enrolamentos que são construtivamente inviáveis. O estágio intermediário divide o problema em partes manejáveis.",
+  "Correto! O disjuntor de média tensão é o elemento de proteção e manobra do consumidor. Ele interrompe automaticamente em caso de sobrecorrente ou curto-circuito, protegendo o transformador e os equipamentos internos, e permite energizar ou desenergizar a instalação com segurança.",
+  "Correto! O inversor grid-tie é indispensável na geração fotovoltaica conectada à rede. Além de converter CC em CA, ele sincroniza com a rede em frequência (60 Hz), fase e amplitude — sem essa sincronização, haveria injeção de harmônicos e possíveis danos à rede e a outros consumidores.",
+  "Correto! Com a mesma potência a ser transmitida, operar em tensão mais alta significa corrente muito menor. Como as perdas por efeito Joule dependem do quadrado da corrente, a redução da corrente tem impacto enorme na eficiência do transporte de energia.",
+  "Correto! A média tensão (MT: 13,8 kV ou 34,5 kV) é usada na distribuição primária — leva energia das subestações abaixadoras até os transformadores de poste. A baixa tensão (BT: 127/220 V ou 220/380 V) é a tensão final entregue ao consumidor após a transformação.",
+  "Correto! O transformador opera pelo princípio da indução eletromagnética (Lei de Faraday): a corrente alternada no primário cria fluxo magnético variável no núcleo, que induz FEM no secundário. A relação entre as tensões é igual à relação entre os números de espiras de cada enrolamento.",
+];
+
+const FEEDBACK_ERR = [
+  "Incorreto. Elevar a tensão não aumenta a potência nem a frequência. O benefício é a redução da corrente — e consequentemente das perdas resistivas nos cabos, que dependem do quadrado da corrente. Essa é a razão fundamental para a transmissão em alta tensão.",
+  "Incorreto. A subestação elevadora aumenta a tensão, não a reduz. Reduzir a tensão é função da subestação abaixadora, localizada no destino da transmissão. A elevadora está na saída da usina.",
+  "Incorreto. A energia nunca vai direto para distribuição sem passar pela transmissão em alta tensão. A sequência correta inclui sempre a subestação elevadora antes da transmissão e a subestação abaixadora antes da distribuição.",
+  "Incorreto. Embora MMGD, solar e eólica estejam crescendo rapidamente, a hidrelétrica ainda lidera com 41,1% (ONS 2026), sustentada pelo enorme potencial hídrico brasileiro que nenhuma outra fonte consegue superar em escala.",
+  "Incorreto. Não existe essa restrição na norma NBR 5410. O problema real é técnico-construtivo: a grande diferença de tensão entre primário e secundário exigiria isolação dielétrica entre os enrolamentos que tornaria o transformador inviável de construir.",
+  "Incorreto. Regular tensão é função do regulador de tensão; medir energia é função do medidor/transformador de medida; converter CA em CC é função do retificador. O disjuntor tem função de proteção e manobra — interrompe sobrecorrentes e permite energizar/desenergizar com segurança.",
+  "Incorreto. O transformador só opera com corrente alternada (fluxo variável) e não converte CC em CA. Banco de baterias armazena energia, mas não faz a sincronização necessária. O inversor grid-tie é o dispositivo correto para converter CC fotovoltaica em CA sincronizada com a rede.",
+  "Incorreto. Elevar a tensão não aumenta a corrente, nem a frequência, nem o número de fases. O efeito correto é o oposto: maior tensão → menor corrente → menos perdas por efeito Joule. A resistência do cabo não muda com a tensão aplicada.",
+  "Incorreto. A distinção entre MT e BT é física (faixa de tensão) e funcional (primária vs. secundária na distribuição), não apenas contratual. A MT pode atender também consumidores industriais de grande porte, e a BT pode ser aérea ou subterrânea.",
+  "Incorreto. Efeito termoelétrico, fotoelétrico, condução eletrostática e ressonância magnética não são os princípios do transformador. O funcionamento correto é pela indução eletromagnética (Lei de Faraday): fluxo magnético variável no núcleo induz tensão nos enrolamentos proporcional ao número de espiras.",
+];
+
+let studentName = '';
+let score = 0;
+let answered = new Array(TOTAL_Q).fill(false);
+let answeredCount = 0;
+
+function saveName() {
+  const v = document.getElementById('nameInput').value.trim();
+  if (!v) { alert('Por favor, informe seu nome completo.'); return; }
+  studentName = v;
+  document.getElementById('nameBtn').textContent = '✓ ' + v;
+  document.getElementById('nameInput').disabled = true;
+  document.getElementById('nameBtn').disabled = true;
+  document.getElementById('main').classList.remove('locked');
+}
+
+function answer(qIdx, chosen) {
+  if (answered[qIdx]) return;
+  answered[qIdx] = true;
+  answeredCount++;
+
+  const opts = document.getElementById('opts' + qIdx).querySelectorAll('.opt');
+  const letters = ['A','B','C','D','E'];
+  const correctIdx = GABARITO[qIdx];
+  const chosenIdx  = letters.indexOf(chosen);
+  const isCorrect  = chosenIdx === correctIdx;
+
+  opts.forEach((o, i) => {
+    if (i === correctIdx) o.classList.add('correct');
+    else if (i === chosenIdx && !isCorrect) o.classList.add('wrong');
+    else o.classList.add('disabled');
+  });
+
+  const fb = document.getElementById('fb' + qIdx);
+  fb.classList.add('show', isCorrect ? 'ok' : 'err');
+  fb.textContent = (isCorrect ? '✓ ' : '✗ ') + (isCorrect ? FEEDBACK_OK[qIdx] : FEEDBACK_ERR[qIdx]);
+
+  if (isCorrect) {
+    score++;
+    document.getElementById('scoreDisplay').textContent = score + ' / ' + TOTAL_Q;
+  }
+
+  if (answeredCount === TOTAL_Q) {
+    document.getElementById('btnFinalizar').disabled = false;
+  }
+}
+
+function finalizar() {
+  document.getElementById('btnFinalizar').disabled = true;
+  document.getElementById('btnFinalizar').textContent = '✓ Enviado';
+
+  const pct = ((score / TOTAL_Q) * 100).toFixed(0);
+  document.getElementById('resultScore').textContent = score + ' / ' + TOTAL_Q + ' acertos';
+  document.getElementById('resultPct').textContent = pct + '% de aproveitamento';
+  document.getElementById('resultado').classList.remove('hidden');
+
+  const perfEl = document.getElementById('perfMsg');
+  if (score >= 8) {
+    perfEl.className = 'perf-msg perf-great';
+    perfEl.textContent = '🎯 Excelente! Você demonstrou sólido domínio conceitual do sistema elétrico de potência.';
+  } else if (score >= 6) {
+    perfEl.className = 'perf-msg perf-good';
+    perfEl.textContent = '📘 Bom desempenho! Revise os conceitos de transmissão em alta tensão e a função de cada elemento do sistema GTD.';
+  } else {
+    perfEl.className = 'perf-msg perf-keep';
+    perfEl.textContent = '📖 Continue estudando! Foque na sequência GTD, na função das subestações e no princípio de funcionamento do transformador.';
+  }
+
+  const payload = {
+    nome: studentName,
+    timestamp: new Date().toLocaleString('pt-BR'),
+    acertos: score,
+    total: TOTAL_Q,
+    pct: pct + '%'
+  };
+
+  if (APPS_SCRIPT_URL === 'COLE_AQUI_A_URL_DO_APPS_SCRIPT_GTD') {
+    document.getElementById('sentMsg').style.display = 'flex'; return;
+  }
+  fetch(APPS_SCRIPT_URL, {
+    method: 'POST', mode: 'no-cors',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  }).then(() => {
+    document.getElementById('sentMsg').style.display = 'flex';
+  }).catch(() => {
+    const m = document.getElementById('sentMsg');
+    m.textContent = '⚠ Erro ao enviar. Anote o resultado e informe o professor.';
+    m.style.display = 'flex';
+  });
+}
+</script>
+</body>
+</html>
