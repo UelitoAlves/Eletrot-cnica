@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Atividade — Sobrecarga, Curto-Circuito e Disjuntores</title>
+  <style>
+    :root{
+      --bg:#f4f7fb;
+      --card:#ffffff;
+      --text:#172033;
+      --muted:#64748b;
+      --line:#dbe3ee;
+      --primary:#0f5fa8;
+      --primary-2:#eaf3fb;
+      --ok:#17803d;
+      --ok-bg:#eaf8ef;
+      --bad:#b42318;
+      --bad-bg:#fff0ee;
+      --shadow:0 8px 28px rgba(15,23,42,.08);
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+      background:var(--bg);
+      color:var(--text);
+      line-height:1.55;
+    }
+    .wrap{max-width:930px;margin:0 auto;padding:32px 18px 56px}
+    .hero{
+      background:linear-gradient(135deg,#0b4f8a,#1478c7);
+      color:#fff;
+      border-radius:18px;
+      padding:28px;
+      box-shadow:var(--shadow);
+      margin-bottom:22px;
+    }
+    .hero h1{margin:0 0 8px;font-size:clamp(1.55rem,3vw,2.2rem);line-height:1.2}
+    .hero p{margin:0;opacity:.94}
+    .student{
+      display:grid;
+      grid-template-columns:2fr 1fr;
+      gap:14px;
+      background:var(--card);
+      border:1px solid var(--line);
+      border-radius:16px;
+      padding:18px;
+      margin-bottom:18px;
+      box-shadow:var(--shadow);
+    }
+    label.small{display:block;font-size:.86rem;font-weight:700;margin-bottom:6px;color:#334155}
+    input[type=text]{
+      width:100%;padding:12px 13px;border:1px solid #cbd5e1;border-radius:10px;
+      font-size:1rem;outline:none;background:#fff;color:var(--text)
+    }
+    input[type=text]:focus{border-color:#3b82f6;box-shadow:0 0 0 3px rgba(59,130,246,.14)}
+    .question{
+      background:var(--card);
+      border:1px solid var(--line);
+      border-radius:16px;
+      padding:20px;
+      margin:14px 0;
+      box-shadow:var(--shadow);
+    }
+    .qtitle{font-weight:800;font-size:1.03rem;margin-bottom:14px}
+    .opt{
+      display:flex;gap:10px;align-items:flex-start;
+      border:1px solid #d7e0eb;border-radius:11px;
+      padding:11px 12px;margin:8px 0;cursor:pointer;
+      transition:.15s ease;background:#fff;
+    }
+    .opt:hover{background:#f8fbff;border-color:#a8c8e8}
+    .opt input{margin-top:4px;accent-color:var(--primary)}
+    .opt.correct{border-color:#78c692;background:var(--ok-bg)}
+    .opt.incorrect{border-color:#f0a29b;background:var(--bad-bg)}
+    .feedback{
+      display:none;margin-top:12px;padding:11px 12px;border-radius:10px;
+      font-size:.94rem;border-left:4px solid transparent
+    }
+    .feedback.ok{display:block;background:var(--ok-bg);border-left-color:var(--ok);color:#14532d}
+    .feedback.bad{display:block;background:var(--bad-bg);border-left-color:var(--bad);color:#7f1d1d}
+    .actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:22px}
+    button{
+      border:0;border-radius:11px;padding:13px 18px;font-weight:800;font-size:1rem;cursor:pointer
+    }
+    #submitBtn{background:var(--primary);color:white}
+    #submitBtn:hover{filter:brightness(.95)}
+    #resetBtn{background:#e7edf5;color:#24344d;display:none}
+    .result{
+      display:none;margin-top:20px;background:#fff;border:1px solid var(--line);
+      border-radius:16px;padding:20px;box-shadow:var(--shadow)
+    }
+    .score{font-size:1.35rem;font-weight:900;margin-bottom:8px}
+    .status{font-size:.92rem;color:var(--muted)}
+    .bar{height:12px;background:#e8edf4;border-radius:999px;overflow:hidden;margin:12px 0}
+    .bar > div{height:100%;background:linear-gradient(90deg,#0f5fa8,#1f9ce5);width:0%;transition:.3s ease}
+    .footer-note{margin-top:18px;color:var(--muted);font-size:.84rem;text-align:center}
+    .required{color:#b42318}
+    @media (max-width:680px){
+      .student{grid-template-columns:1fr}
+      .hero{padding:22px}
+      .question{padding:16px}
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <section class="hero">
+      <h1>Atividade — Sobrecarga, Curto-Circuito e Disjuntores</h1>
+      <p>Assinale uma alternativa em cada questão. As respostas corretas serão apresentadas somente após a finalização da tentativa.</p>
+    </section>
+
+    <section class="student">
+      <div>
+        <label class="small" for="studentName">Nome do aluno <span class="required">*</span></label>
+        <input id="studentName" type="text" autocomplete="name" placeholder="Digite seu nome completo" />
+      </div>
+      <div>
+        <label class="small" for="studentClass">Turma <span class="required">*</span></label>
+        <input id="studentClass" type="text" placeholder="Ex.: 3º TAI" />
+      </div>
+    </section>
+
+    <form id="quizForm"></form>
+
+    <div class="actions">
+      <button id="submitBtn" type="button">Finalizar tentativa</button>
+      <button id="resetBtn" type="button">Nova tentativa</button>
+    </div>
+
+    <section id="result" class="result">
+      <div id="scoreText" class="score"></div>
+      <div class="bar"><div id="scoreBar"></div></div>
+      <div id="sendStatus" class="status"></div>
+    </section>
+
+    <div class="footer-note">Atividade de Eletrotécnica — proteção contra sobrecorrentes</div>
+  </main>
+
+<script>
+/*
+  ==============================================================
+  CONFIGURAÇÃO PARA SALVAR AS RESPOSTAS EM UMA PLANILHA GOOGLE
+  ==============================================================
+
+  1) Crie uma planilha no Google Sheets.
+  2) Abra Extensões > Apps Script.
+  3) Cole o conteúdo do arquivo "google-apps-script.gs" fornecido junto com este HTML.
+  4) Implante como Aplicativo da Web e copie a URL terminada em /exec.
+  5) Cole essa URL abaixo em GOOGLE_SCRIPT_URL.
+
+  Se deixar a URL vazia, o quiz funciona normalmente, mas não envia dados.
+*/
+const GOOGLE_SCRIPT_URL = ""; // Ex.: https://script.google.com/macros/s/SEU_ID/exec
+
+const questions = [
+  {
+    id: "q1",
+    text: "1. Sob que condição de operação um circuito elétrico é considerado sobrecarregado?",
+    options: [
+      "Quando a tensão do circuito cai abaixo de 90% do valor nominal.",
+      "Quando circula uma corrente acima do valor previsto/permitido para o circuito, sem que exista necessariamente um curto-circuito.",
+      "Somente quando ocorre contato direto entre fase e neutro.",
+      "Sempre que a corrente do circuito for menor que a corrente nominal do disjuntor."
+    ],
+    correct: 1,
+    explanation: "Sobrecarga é uma sobrecorrente em um circuito eletricamente íntegro, normalmente provocada por excesso de carga ou condição anormal de operação."
+  },
+  {
+    id: "q2",
+    text: "2. Qual alternativa apresenta três situações que podem sobrecarregar um circuito?",
+    options: [
+      "Muitos equipamentos ligados simultaneamente; motor submetido a esforço mecânico excessivo; equipamento operando com corrente acima do normal.",
+      "Abertura de um interruptor; desligamento de uma lâmpada; atuação de um fusível aberto.",
+      "Redução da quantidade de cargas; aumento da seção do condutor; correção do fator de potência.",
+      "Aterramento adequado; instalação de DR; uso de DPS."
+    ],
+    correct: 0,
+    explanation: "O excesso de cargas e condições anormais de equipamentos podem elevar a corrente acima do valor previsto sem caracterizar, necessariamente, um curto-circuito."
+  },
+  {
+    id: "q3",
+    text: "3. Quais são dois exemplos de sobrecargas temporárias e normalmente inofensivas?",
+    options: [
+      "Corrente de partida de motores e corrente de energização (inrush) de transformadores.",
+      "Curto entre fase e neutro e curto entre duas fases.",
+      "Cabo rompido e ausência do condutor de proteção.",
+      "Fuga de corrente para a carcaça e arco elétrico permanente."
+    ],
+    correct: 0,
+    explanation: "Algumas cargas apresentam picos de corrente de curta duração na partida ou energização. O dispositivo de proteção deve tolerar esses picos dentro dos limites previstos."
+  },
+  {
+    id: "q4",
+    text: "4. O que pode ocorrer quando condutores são forçados a conduzir mais corrente do que aquela para a qual foram dimensionados com segurança?",
+    options: [
+      "A resistência do condutor desaparece e não ocorre aquecimento.",
+      "O condutor passa a consumir menos potência e a instalação fica mais eficiente.",
+      "O aquecimento por efeito Joule aumenta, podendo degradar a isolação e elevar o risco de danos e incêndio.",
+      "A frequência da rede aumenta automaticamente para compensar a corrente."
+    ],
+    correct: 2,
+    explanation: "Como as perdas térmicas crescem aproximadamente com I²R, correntes excessivas provocam aquecimento e podem danificar a isolação e a instalação."
+  },
+  {
+    id: "q5",
+    text: "5. Qual é a definição geral de curto-circuito?",
+    options: [
+      "Uma operação normal em que a carga consome exatamente sua corrente nominal.",
+      "Uma ligação intencional de alta impedância utilizada para limitar corrente.",
+      "Uma conexão acidental ou anormal de baixa impedância entre pontos de potenciais diferentes, produzindo corrente muito elevada.",
+      "Uma redução da corrente causada pelo aumento da resistência da carga."
+    ],
+    correct: 2,
+    explanation: "No curto-circuito surge um caminho de baixa impedância entre pontos de potenciais diferentes, resultando em corrente de falta muito elevada."
+  },
+  {
+    id: "q10",
+    text: "10. Qual alternativa apresenta quatro funções típicas de um dispositivo de proteção elétrica?",
+    options: [
+      "Aumentar a tensão, corrigir frequência, gerar energia e elevar o fator de potência.",
+      "Detectar uma condição anormal, interromper a corrente de falta, isolar o trecho defeituoso e reduzir riscos de danos à instalação/equipamentos.",
+      "Medir potência, registrar consumo, variar velocidade e controlar iluminação.",
+      "Substituir o aterramento, eliminar a necessidade de dimensionar cabos, estabilizar a rede e aumentar a corrente disponível."
+    ],
+    correct: 1,
+    explanation: "Dispositivos de proteção atuam para detectar situações anormais e interromper/isolar o circuito, limitando consequências térmicas, mecânicas e riscos à instalação."
+  },
+  {
+    id: "q29",
+    text: "29. Como um disjuntor termomagnético desarma quando o circuito fica sobrecarregado?",
+    options: [
+      "A bobina magnética atua instantaneamente para qualquer pequena sobrecarga.",
+      "O elemento bimetálico aquece devido à corrente elevada, deforma-se e aciona o mecanismo de abertura após um intervalo de tempo.",
+      "O disjuntor aumenta sua resistência até que a tensão da rede se torne nula.",
+      "O contato de proteção permanece fechado e o cabo limita sozinho a corrente."
+    ],
+    correct: 1,
+    explanation: "Na sobrecarga atua principalmente o elemento térmico (bimetálico), com característica de tempo inverso. A atuação magnética é destinada principalmente a correntes elevadas de curto-circuito."
+  }
+];
+
+const form = document.getElementById('quizForm');
+const submitBtn = document.getElementById('submitBtn');
+const resetBtn = document.getElementById('resetBtn');
+const result = document.getElementById('result');
+const scoreText = document.getElementById('scoreText');
+const scoreBar = document.getElementById('scoreBar');
+const sendStatus = document.getElementById('sendStatus');
+
+function renderQuiz(){
+  form.innerHTML = questions.map((q, idx) => `
+    <section class="question" id="card-${q.id}">
+      <div class="qtitle">${q.text}</div>
+      ${q.options.map((opt, i) => `
+        <label class="opt" id="opt-${q.id}-${i}">
+          <input type="radio" name="${q.id}" value="${i}" />
+          <span><strong>${String.fromCharCode(65+i)})</strong> ${opt}</span>
+        </label>
+      `).join('')}
+      <div id="feedback-${q.id}" class="feedback"></div>
+    </section>
+  `).join('');
+}
+
+function getSelected(qid){
+  const checked = document.querySelector(`input[name="${qid}"]:checked`);
+  return checked ? Number(checked.value) : null;
+}
+
+async function sendToGoogleSheet(payload){
+  if(!GOOGLE_SCRIPT_URL){
+    sendStatus.textContent = "Respostas não enviadas: configure a URL do Google Apps Script no arquivo HTML.";
+    return;
+  }
+
+  try{
+    const body = new URLSearchParams();
+    Object.entries(payload).forEach(([k,v]) => body.append(k, String(v)));
+
+    await fetch(GOOGLE_SCRIPT_URL, {
+      method: "POST",
+      mode: "no-cors",
+      headers: {"Content-Type":"application/x-www-form-urlencoded;charset=UTF-8"},
+      body
+    });
+    sendStatus.textContent = "Respostas enviadas para a planilha.";
+  }catch(err){
+    sendStatus.textContent = "Não foi possível enviar as respostas. Verifique a configuração do Google Apps Script.";
+  }
+}
+
+submitBtn.addEventListener('click', async () => {
+  const name = document.getElementById('studentName').value.trim();
+  const turma = document.getElementById('studentClass').value.trim();
+
+  if(!name || !turma){
+    alert('Preencha o nome e a turma antes de finalizar.');
+    return;
+  }
+
+  const unanswered = questions.filter(q => getSelected(q.id) === null);
+  if(unanswered.length){
+    alert(`Responda todas as questões. Faltam ${unanswered.length}.`);
+    document.getElementById(`card-${unanswered[0].id}`).scrollIntoView({behavior:'smooth',block:'center'});
+    return;
+  }
+
+  let score = 0;
+  const answers = {};
+
+  questions.forEach(q => {
+    const selected = getSelected(q.id);
+    answers[q.id] = String.fromCharCode(65 + selected);
+    const isCorrect = selected === q.correct;
+    if(isCorrect) score++;
+
+    q.options.forEach((_,i) => {
+      const el = document.getElementById(`opt-${q.id}-${i}`);
+      if(i === q.correct) el.classList.add('correct');
+      if(i === selected && i !== q.correct) el.classList.add('incorrect');
+    });
+
+    const fb = document.getElementById(`feedback-${q.id}`);
+    const correctLetter = String.fromCharCode(65 + q.correct);
+    fb.className = `feedback ${isCorrect ? 'ok' : 'bad'}`;
+    fb.innerHTML = `<strong>${isCorrect ? 'Correto.' : 'Incorreto.'}</strong> Resposta correta: <strong>${correctLetter}</strong>. ${q.explanation}`;
+  });
+
+  document.querySelectorAll('input[type=radio]').forEach(el => el.disabled = true);
+  submitBtn.disabled = true;
+  submitBtn.style.opacity = '.6';
+  resetBtn.style.display = 'inline-block';
+
+  const percent = Math.round((score / questions.length) * 100);
+  scoreText.textContent = `Resultado: ${score} de ${questions.length} acertos (${percent}%)`;
+  scoreBar.style.width = `${percent}%`;
+  result.style.display = 'block';
+  result.scrollIntoView({behavior:'smooth', block:'center'});
+
+  const payload = {
+    dataHora: new Date().toLocaleString('pt-BR'),
+    nome: name,
+    turma,
+    acertos: score,
+    total: questions.length,
+    percentual: percent,
+    ...answers
+  };
+
+  await sendToGoogleSheet(payload);
+});
+
+resetBtn.addEventListener('click', () => {
+  if(!confirm('Iniciar uma nova tentativa?')) return;
+  renderQuiz();
+  result.style.display = 'none';
+  scoreBar.style.width = '0%';
+  sendStatus.textContent = '';
+  submitBtn.disabled = false;
+  submitBtn.style.opacity = '1';
+  resetBtn.style.display = 'none';
+  window.scrollTo({top:0,behavior:'smooth'});
+});
+
+renderQuiz();
+</script>
+</body>
+</html>
